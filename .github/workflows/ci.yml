@@ -67,6 +67,23 @@ jobs:
         env:
           F_TIME: '${{ steps.current-time.outputs.formattedTime }}'
         run: echo "NOW=$F_TIME" >> $GITHUB_ENV
+      
+      - name: Get files
+        shell: bash
+        run: |
+          folder_path=".${{ env.APP_PATH }}/build"
+          cos_url_path="/${{ env.REPOSITORY }}${{ env.APP_PATH }}/${{ env.BRANCH }}"
+          pre_str="https://assets.belloai.com$cos_url_path/default"
+
+          file_list=$(find "$folder_path" -type f)
+          file_array_str=$(awk -v RS="\n" -v ORS=";" '{print $0}' <<< "$file_list")
+          joined_string=$(echo $file_array_str | sed "s|$folder_path|$pre_str|g")
+
+
+          echo "FOLDER_PATH=$folder_path" >> $GITHUB_ENV
+          echo "COS_URL_PATH=$cos_url_path" >> $GITHUB_ENV
+          echo "OSS_URLS_STR=$joined_string" >> $GITHUB_ENV
+
 
       - name: 上传除html以外的静态资源到腾讯云COS另外的桶
         uses: zkqiang/tencent-cos-action@v0.1.0
